@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
  
+import os
 from setuptools import setup, find_packages
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
  
 setup(
     name='ldapom-model',
@@ -10,7 +14,7 @@ setup(
     author="Guillaume Subiron",
     author_email="maethor+pip@subiron.org",
     description="Base class to manage models with ldapom.",
-    long_description=open('README.md').read(),
+    long_description=read('README.md'),
     install_requires=['ldapom==0.11.0'],
     include_package_data=True,
     url='http://github.com/maethor/ldapom-model',
