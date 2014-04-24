@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
- 
+
 """
     ldapom_model
     ------------
@@ -54,14 +54,14 @@ class LDAPModel():
 
         :attr _class: objectClass corresponding to your model in the LDAP.
         :attr _class_attrs: Dictionary of attributes to retrieve. Keys are
-                            the names of attributes in your model, and values are
-                            LDAPAttr matching the attributes in the LDAP.
+                            the names of attributes in your model, and values
+                            are LDAPAttr matching the attributes in the LDAP.
                             'dn' and 'objectClass' attributes are automatically
                             added to the dictionary.
         :attr _rdn: Relative Distinguished Name of the entries. default="cn"
 
         :Example:
-        
+
         class Person(LDAPModel):
             _class = 'inetOrgPerson'
             _class_attrs = {'cn': LDAPAttr('cn'),
