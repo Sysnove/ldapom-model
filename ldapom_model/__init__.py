@@ -144,7 +144,7 @@ class LDAPModel():
             if multiple:
                 return res
             else:
-                if type(res) is str:
+                if type(res) is str or type(res) is int or type(res) is float:
                     return res
                 if len(res) == 0:
                     return None
