@@ -185,14 +185,18 @@ class LDAPModel():
         return cls._search(connection, search_filter)
 
     @classmethod
-    def _search(cls, connection, search_filter):
+    def _search(cls, connection, **kwargs):
         """
             Return a list of entries.
 
             :param connection: ldapom.LDAPConnection object
             :param search_filter: ldapsearch-style search filter
+            :param retrieve_attributes: List of attributes to retrieve. If None is
+                                        given, all are retrieved.
+            :param base: Search base for the query.
+            :param scope: The search scope in the LDAP tree
         """
-        for r in connection.search(search_filter=search_filter):
+        for r in connection.search(**kwargs):
             yield cls._from_entry(r)
 
     @classmethod
