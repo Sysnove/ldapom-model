@@ -196,6 +196,8 @@ class LDAPModel():
             :param base: Search base for the query.
             :param scope: The search scope in the LDAP tree
         """
+        if not "search_filter" in kwargs:
+            kwargs['search_filter'] = "(objectClass=%s)" % cls._class
         for r in connection.search(**kwargs):
             yield cls._from_entry(r)
 
