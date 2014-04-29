@@ -182,7 +182,7 @@ class LDAPModel():
                            attributes (&)
         """
         search_filter = "(&(objectClass=%s)%s)" % (cls._class, cls._kwargs_to_filter(kwargs))
-        return cls._search(connection, search_filter)
+        return cls._search(connection, search_filter=search_filter)
 
     @classmethod
     def _search(cls, connection, **kwargs):
