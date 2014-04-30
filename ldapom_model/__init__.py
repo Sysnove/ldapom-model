@@ -178,6 +178,12 @@ class LDAPModel():
         """
         return self._entry.save()
 
+    def delete(self):
+        """
+           Delete this entry on the LDAP server.
+        """
+        return self._entry.delete()
+
     @classmethod
     def _from_entry(cls, entry):
         obj = cls(None, "")
