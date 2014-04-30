@@ -150,7 +150,7 @@ class LDAPModel():
             try:
                 res = getattr(self._entry, attr)
             except AttributeError:
-                if default is None:
+                if default is not None:
                     return default
                 else:
                     raise AttributeNotFound()
