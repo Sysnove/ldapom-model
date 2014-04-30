@@ -29,11 +29,16 @@ class MultipleValuesInAttribute(Exception):
     """Raised the attribute has multiple values, but only one was excepted."""
     pass
 
+class AttributeNotFound(Exception):
+    """Raised when the attribute is not found in the entry, unless if default
+       is set."""
+    pass
+
 
 class LDAPAttr():
     """LDAP Attribute."""
 
-    def __init__(self, attr, multiple=False, nullable=True):
+    def __init__(self, attr, multiple=False, nullable=True, default=None):
         """
             Instanciates a new LDAPAttr.
 
@@ -44,6 +49,7 @@ class LDAPAttr():
         self.attr = attr
         self.multiple = multiple
         self.nullable = nullable
+        self.default = default
 
 
 class LDAPModel():
@@ -140,7 +146,14 @@ class LDAPModel():
         if name in self._attrs:
             multiple = self._attrs[name].multiple
             attr = self._attrs[name].attr
-            res = getattr(self._entry, attr)
+            default = self._attrs[name].default
+            try:
+                res = getattr(self._entry, attr)
+            except AttributeError():
+                if default is not None:
+                    return default
+                else:
+                    raise AttributeNotFound()
             if multiple:
                 return res
             else:
