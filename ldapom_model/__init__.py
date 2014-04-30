@@ -149,7 +149,7 @@ class LDAPModel():
             default = self._attrs[name].default
             try:
                 res = getattr(self._entry, attr)
-            except AttributeError():
+            except AttributeError:
                 if default is not None:
                     return default
                 else:

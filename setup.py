@@ -9,7 +9,7 @@ def read(fname):
  
 setup(
     name='ldapom-model',
-    version='0.0.7',
+    version='0.0.8',
     packages=find_packages(),
     author="Guillaume Subiron",
     author_email="maethor+pip@subiron.org",
