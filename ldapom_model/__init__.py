@@ -181,9 +181,9 @@ class LDAPModel():
         """
             Save this entry and its attributes to the LDAP server.
         """
-        for attr in (a for a in self._attrs if 'server_default' in a):
-            if not getattr(self, attr) and getattr(self, attr) is not False:
-                setattr(self, attr, attr['server_default'])
+        for name, attr in {n: a for n, a in self._attrs.items() if a.server_default is not None}.items():
+            if not getattr(self, name) and getattr(self, name) is not False:
+                setattr(self, name, attr.server_default)
         return self._entry.save()
 
     def delete(self):
