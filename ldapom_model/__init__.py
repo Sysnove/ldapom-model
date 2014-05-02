@@ -182,7 +182,11 @@ class LDAPModel():
             Save this entry and its attributes to the LDAP server.
         """
         for name, attr in {n: a for n, a in self._attrs.items() if a.server_default is not None}.items():
-            if not getattr(self, name) and getattr(self, name) is not False:
+            try:
+                value = getattr(self, name)
+            except AttributeNotFound:
+                value = None
+            if not value and value is not False:
                 setattr(self, name, attr.server_default)
         return self._entry.save()
 
