@@ -38,18 +38,23 @@ class AttributeNotFound(Exception):
 class LDAPAttr():
     """LDAP Attribute."""
 
-    def __init__(self, attr, multiple=False, nullable=True, default=None):
+    def __init__(self, attr, multiple=False, nullable=True, default=None, server_default=None):
         """
             Instanciates a new LDAPAttr.
 
             :param attr: Attribute name in the LDAP
             :param multiple: Is it a multiple values attribute? default=False
             :param nullable: May be null? default=True
+            :param default: Default value for the attribute is it is not set
+                            on the server.
+            :param server_default: Value to set on the server if the attribute
+                                   is not defined.
         """
         self.attr = attr
         self.multiple = multiple
         self.nullable = nullable
         self.default = default
+        self.server_default = server_default
 
 
 class LDAPModel():
@@ -176,6 +181,9 @@ class LDAPModel():
         """
             Save this entry and its attributes to the LDAP server.
         """
+        for attr in (a for a in self._attrs if 'server_default' in a):
+            if not getattr(self, attr) and getattr(self, attr) is not False:
+                setattr(self, attr, attr['server_default'])
         return self._entry.save()
 
     def delete(self):
