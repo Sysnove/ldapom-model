@@ -9,6 +9,8 @@
     :copyright: (c) 2014 by Guillaume Subiron.
 """
 
+import copy
+
 from ldapom import LDAPEntry
 
 
@@ -197,13 +199,6 @@ class LDAPModel():
         return self._entry.delete()
 
     @classmethod
-    def _from_entry(cls, entry):
-        obj = cls(None, "")
-        obj._entry = entry
-        obj._entry.fetch()
-        return obj
-
-    @classmethod
     def search(cls, connection, **kwargs):
         """
             Return a list of entries.
@@ -229,8 +224,13 @@ class LDAPModel():
         """
         if not "search_filter" in kwargs:
             kwargs['search_filter'] = "(objectClass=%s)" % cls._class
-        for r in connection.search(**kwargs):
-            yield cls._from_entry(r)
+        for entry in connection.search(**kwargs):
+            obj = cls(None, "")
+            obj._entry = entry
+            # Copy fetched_attributes because search() doesn't do it and
+            # LDAPEntry.search is doing a new ldap search.
+            obj._entry._fetched_attributes = copy.deepcopy(obj._entry._attributes)
+            yield obj
 
     @classmethod
     def retrieve(cls, connection, id):
