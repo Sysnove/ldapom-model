@@ -188,7 +188,7 @@ class LDAPModel():
                 value = getattr(self, name)
             except AttributeNotFound:
                 value = None
-            if not value and value is not False:
+            if not value and value is not False and value is not 0:
                 setattr(self, name, attr.server_default)
         return self._entry.save()
 
