@@ -138,8 +138,8 @@ class LDAPModel():
 
         if name in self._attrs:
             attr = self._attrs[name]
-            if attr.multiple and type(value) is str:
-                raise
+            #if attr.multiple and type(value) is str:
+                #raise
             return setattr(self._entry, attr.attr, value)
         else:
             return super(LDAPModel, self).__setattr__(name, value)
