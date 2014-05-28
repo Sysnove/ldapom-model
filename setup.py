@@ -17,7 +17,7 @@ setup(
     long_description=read('README.md'),
     install_requires=['ldapom==0.12.0'],
     include_package_data=True,
-    url='http://github.com/maethor/ldapom-model',
+    url='http://github.com/sysnove/ldapom-model',
     classifiers=[
         "Programming Language :: Python",
         "Operating System :: OS Independent",
