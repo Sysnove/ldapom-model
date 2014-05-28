@@ -31,9 +31,16 @@ class MultipleValuesInAttribute(Exception):
     """Raised the attribute has multiple values, but only one was excepted."""
     pass
 
+
 class AttributeNotFound(Exception):
     """Raised when the attribute is not found in the entry, unless if default
        is set."""
+    pass
+
+
+class NotNullableAttribute(Exception):
+    """Raised when the attribute is not nullable and the user is trying to a
+       None value."""
     pass
 
 
@@ -140,6 +147,8 @@ class LDAPModel():
             attr = self._attrs[name]
             #if attr.multiple and type(value) is str:
                 #raise
+            if not attr.nullable and value is None:
+                raise NotNullableAttribute()
             return setattr(self._entry, attr.attr, value)
         else:
             return super(LDAPModel, self).__setattr__(name, value)
@@ -176,8 +185,8 @@ class LDAPModel():
 
     def __delattr__(self, name):
         if name in self._attrs:
-            name = self._attrs[name]['attr']
-            del self._entry.name
+            name = self._attrs[name].attr
+            delattr(self._entry, name)
 
     def save(self):
         """
