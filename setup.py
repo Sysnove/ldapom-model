@@ -9,13 +9,13 @@ def read(fname):
  
 setup(
     name='ldapom-model',
-    version='0.0.21',
+    version='0.1.0',
     packages=find_packages(),
     author="Guillaume Subiron",
     author_email="maethor+pip@subiron.org",
     description="Base class to manage models with ldapom.",
     long_description=read('README.md'),
-    install_requires=['ldapom==0.11.0'],
+    install_requires=['ldapom==0.12.0'],
     include_package_data=True,
     url='http://github.com/maethor/ldapom-model',
     classifiers=[
