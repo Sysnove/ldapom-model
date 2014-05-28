@@ -4,7 +4,7 @@
 import unittest
 
 from ldapom import LDAPConnection
-from ldapom_model import LDAPModel, LDAPAttr, NoResultFound, AttributeNotFound
+from ldapom_model import LDAPModel, LDAPAttr, NoResultFound, AttributeNotFound, NotNullableAttribute, MultipleResultsFound
 import ldapom
 import test_server
 
@@ -28,11 +28,12 @@ class LDAPServerMixin(object):
 class Person(LDAPModel):
     _class = 'person'
     _class_attrs = {'cn': LDAPAttr('cn'),
-                    'lastname': LDAPAttr('sn'),
-                    'description': LDAPAttr('description'),
+                    'lastname': LDAPAttr('sn', server_default="Default"),
                     'invalidAttribute': LDAPAttr('invalid'),
                     'shell': LDAPAttr('loginShell'),
                     'phone': LDAPAttr('telephoneNumber', multiple=True),
+                    'home': LDAPAttr('homeDirectory', nullable=False),
+                    'description': LDAPAttr('description', default="Default"),
                     'photo': LDAPAttr('jpegPhoto')}
     _rdn = 'cn'
 
@@ -53,11 +54,12 @@ class Test(LDAPServerMixin, unittest.TestCase):
         Person.retrieve(self.ldap, "jack")
         with self.assertRaises(NoResultFound):
             Person.retrieve(self.ldap, "nobody")
+        with self.assertRaises(MultipleResultsFound):
+            Person.retrieve(self.ldap, "*a*")
 
     def test_create(self):
         p = Person(self.ldap, 'cn=george,dc=example,dc=com', cn="george", lastname="Hammond")
         p.save()
-
         p = Person.retrieve(self.ldap, "george")
         self.assertEqual(p.lastname, "Hammond")
 
@@ -67,12 +69,25 @@ class Test(LDAPServerMixin, unittest.TestCase):
         p.delete()
         self.assertFalse(p._entry.exists())
 
-    def test_new_attribute(self):
-        p = Person.retrieve(self.ldap, "jack")
-        p.description = "Test user"
+    def test_default_attribute(self):
+        p = Person(self.ldap, 'cn=george,dc=example,dc=com', cn="george", lastname="Hammond")
         p.save()
-        p = Person.retrieve(self.ldap, "jack")
-        self.assertEqual(p.description, "Test user")
+        self.assertEqual(p.description, "Default")
+        self.assertEqual(p._entry.description, set())
+        p.description = "Test"
+        p.save()
+        p = Person.retrieve(self.ldap, "george")
+        self.assertEqual(p.description, "Test")
+
+    def test_server_default_attribute(self):
+        p = Person(self.ldap, 'cn=george,dc=example,dc=com', cn="george")
+        p.save()
+        self.assertEqual(p.lastname, "Default")
+        self.assertEqual(p._entry.sn, {"Default"})
+        p.lastname = "Hammond"
+        p.save()
+        p = Person.retrieve(self.ldap, "george")
+        self.assertEqual(p.lastname, "Hammond")
 
     def test_new_invalid_attribute(self):
         p = Person.retrieve(self.ldap, "jack")
@@ -115,22 +130,37 @@ class Test(LDAPServerMixin, unittest.TestCase):
         p = Person.retrieve(self.ldap, "jack")
         self.assertEqual(p.phone, set())
 
+    def test_modify_notnullable_attribute(self):
+        p = Person.retrieve(self.ldap, "jack")
+        self.assertEqual(p.home, "/home/jack")
+        p.home = "/home/oniel"
+        p.save()
+        p = Person.retrieve(self.ldap, "jack")
+        self.assertEqual(p.home, "/home/oniel")
+        p.home = ""
+        p.save()
+        p = Person.retrieve(self.ldap, "jack")
+        self.assertEqual(p.home, "")
+        with self.assertRaises(NotNullableAttribute):
+            p.home = None
+
+    def test_delete_attribute(self):
+        p = Person.retrieve(self.ldap, "jack")
+        del p.shell
+        p.save()
+        p = Person.retrieve(self.ldap, "jack")
+        with self.assertRaises(AttributeNotFound):
+            p.shell
+
     def test_search(self):
-        pass
+        people = list(Person.search(self.ldap))
+        self.assertEqual(len(people), 4)
+        people = list(Person.search(self.ldap, sn="Carter"))
+        self.assertEqual(len(people), 1)
+        self.assertEqual(people[0].cn, "sam")
+        people = list(Person.search(self.ldap, sn="nobody"))
+        self.assertEqual(len(people), 0)
 
-    def test_search_empty_result(self):
-        pass
-
-    def test_retrieve_operational_attributes(self):
-        pass
-
-    #def test_set_binary_attribute(self):
-        #p = Person.retrieve(self.ldap, "daniel")
-        #jpeg = b'\xff\xd8\xff\xe0\x00\x10\xff'
-        #p.photo = jpeg
-        #p.save()
-        #p = Person.retrieve(self.ldap, "daniel")
-        #p.assertEqual(p.photo, jpeg)
 
 if __name__ == '__main__':
     unittest.main()
