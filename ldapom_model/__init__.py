@@ -44,6 +44,11 @@ class NotNullableAttribute(Exception):
     pass
 
 
+class ClassProperty(property):
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+
+
 class LDAPAttr():
     """LDAP Attribute."""
 
@@ -91,13 +96,18 @@ class LDAPModel():
                             'phone': LDAPAttr('telephoneNumber')}
     """
 
-    _attrs = {'objectClass': LDAPAttr('objectClass',
-                                      multiple=True, nullable=False),
-              'dn': LDAPAttr('dn')}
+    __attrs = {'objectClass': LDAPAttr('objectClass',
+                                       multiple=True, nullable=False),
+               'dn': LDAPAttr('dn')}
     _class_attrs = dict()
     _class = ""
     _rdn = "cn"
     _entry = None
+
+    @ClassProperty
+    @classmethod
+    def _attrs(cls):
+        return dict(cls.__attrs, **cls._class_attrs)
 
     def _preprocess_attrs(self, kwargs):
         """
@@ -121,7 +131,7 @@ class LDAPModel():
             :param dn: Distinguished Name of the new object
             :param kwargs: attributes to set
         """
-        self._attrs = dict(self._attrs, **self._class_attrs)
+        #self._attrs = dict(self._attrs, **self._class_attrs)
         self._entry = LDAPEntry(connection, dn)
         for k, v in self._preprocess_attrs(kwargs).items():
             setattr(self, k, v)
@@ -167,7 +177,7 @@ class LDAPModel():
                 res = getattr(self._entry, attr)
             except AttributeError:
                 if default is not None:
-                    return default
+                    res = default
                 else:
                     raise AttributeNotFound()
             if multiple:
@@ -176,7 +186,7 @@ class LDAPModel():
                 if type(res) is str or type(res) is int or type(res) is float or type(res) is bool:
                     return res
                 if len(res) == 0:
-                    return None
+                    return default
                 if len(res) == 1:
                     return list(res)[0]
                 raise MultipleValuesInAttribute()
@@ -192,13 +202,13 @@ class LDAPModel():
         """
             Save this entry and its attributes to the LDAP server.
         """
-        for name, attr in {n: a for n, a in self._attrs.items() if a.server_default is not None}.items():
+        for name, default_value in {n: a.server_default for n, a in self._attrs.items() if a.server_default is not None}.items():
             try:
                 value = getattr(self, name)
             except AttributeNotFound:
                 value = None
             if not value and value is not False and value is not 0:
-                setattr(self, name, attr.server_default)
+                setattr(self, name, default_value)
         return self._entry.save()
 
     def delete(self):
@@ -216,6 +226,10 @@ class LDAPModel():
             :param kwargs: Attributes to search. Entries must match all the
                            attributes (&)
         """
+        for k, v in kwargs.items():
+            if k in cls._attrs:
+                kwargs.pop(k)
+                kwargs[cls._attrs[k].attr] = v
         search_filter = "(&(objectClass=%s)%s)" % (cls._class, cls._kwargs_to_filter(kwargs))
         return cls._search(connection, search_filter=search_filter)
 
