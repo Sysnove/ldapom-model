@@ -15,8 +15,8 @@ setup(
     author_email="maethor+pip@subiron.org",
     description="Base class to manage models with ldapom.",
     long_description=read('README.md'),
-    install_requires=['ldapom==0.12.0'],
     long_description_content_type="text/markdown",
+    install_requires=['ldapom>=0.12.1'],
     include_package_data=True,
     url='http://github.com/sysnove/ldapom-model',
     classifiers=[
