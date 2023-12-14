@@ -226,9 +226,10 @@ class LDAPModel():
             :param kwargs: Attributes to search. Entries must match all the
                            attributes (&)
         """
-        for k, v in kwargs.items():
+        keys = list(kwargs.keys())
+        for k in keys:
             if k in cls._attrs:
-                kwargs.pop(k)
+                v = kwargs.pop(k)
                 kwargs[cls._attrs[k].attr] = v
         search_filter = "(&(objectClass=%s)%s)" % (cls._class, cls._kwargs_to_filter(kwargs))
         return cls._search(connection, search_filter=search_filter)
